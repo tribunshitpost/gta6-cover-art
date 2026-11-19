@@ -9,110 +9,86 @@
 </head>
 <body>
 <header class="topbar">
-  <div>
+  <div class="brand">
     <h1>VICE SUNSET</h1>
     <p>Cover Studio — photo + caption, poster-ready.</p>
   </div>
   <ol class="steps">
-    <li><b>1</b> Drop a photo</li>
-    <li><b>2</b> Pick a layout &amp; words</li>
-    <li><b>3</b> Export the PNG</li>
+    <li><span class="step-n">1</span> Drop a photo</li>
+    <li><span class="step-n">2</span> Pick a layout &amp; words</li>
+    <li><span class="step-n">3</span> Export the PNG</li>
   </ol>
 </header>
 
-<main class="shell">
-  <aside class="sidebar">
+<div class="shell">
+  <aside class="controls">
     <section>
       <h2>Photos — up to four</h2>
-      <p class="note">Drop an image on a slot, or use a sample. Drag the preview to pan a panel.</p>
-      <div class="slot" data-slot="0">
-        <div class="slot-head"><span>Photo A</span><span class="slot-name">Empty slot</span></div>
-        <label class="file-btn">Choose File <input type="file" accept="image/*" hidden></label>
-        <div class="sample-row">
-          <button type="button" data-sample="pier">Pier sample</button>
-          <button type="button" data-sample="boulevard">Boulevard sample</button>
-        </div>
-      </div>
-      <div class="slot" data-slot="1">
-        <div class="slot-head"><span>Photo B</span><span class="slot-name">Empty slot</span></div>
-        <label class="file-btn">Choose File <input type="file" accept="image/*" hidden></label>
-        <div class="sample-row">
-          <button type="button" data-sample="pier">Pier sample</button>
-          <button type="button" data-sample="boulevard">Boulevard sample</button>
-        </div>
-      </div>
-      <div class="slot" data-slot="2">
-        <div class="slot-head"><span>Photo C</span><span class="slot-name">Empty slot</span></div>
-        <label class="file-btn">Choose File <input type="file" accept="image/*" hidden></label>
-        <div class="sample-row">
-          <button type="button" data-sample="pier">Pier sample</button>
-          <button type="button" data-sample="boulevard">Boulevard sample</button>
-        </div>
-      </div>
-      <div class="slot" data-slot="3">
-        <div class="slot-head"><span>Photo D</span><span class="slot-name">Empty slot</span></div>
-        <label class="file-btn">Choose File <input type="file" accept="image/*" hidden></label>
-        <div class="sample-row">
-          <button type="button" data-sample="pier">Pier sample</button>
-          <button type="button" data-sample="boulevard">Boulevard sample</button>
-        </div>
-      </div>
-      <label class="check"><input type="checkbox" id="fillOne"> One photo fills every panel</label>
+      <p class="hint">Drop an image on a slot, or use a sample. Drag the preview to pan a panel.</p>
+      <div id="slots"></div>
     </section>
 
     <section>
       <h2>Layout</h2>
-      <div class="picker" id="layouts"></div>
-    </section>
-
-    <section>
-      <h2>Colour grade</h2>
-      <div class="picker" id="grades"></div>
+      <div class="choices" data-radio="layout"></div>
+      <div id="panelRows"></div>
+      <label class="check">
+        <input type="checkbox" id="fillOne">
+        One photo fills every panel
+      </label>
+      <label class="field">
+        <span>Fill photo</span>
+        <select id="fillPhoto">
+          <option value="0">Photo A</option>
+          <option value="1">Photo B</option>
+          <option value="2">Photo C</option>
+          <option value="3">Photo D</option>
+        </select>
+      </label>
     </section>
 
     <section>
       <h2>Words</h2>
-      <label class="field">Caption (max 40)
-        <input type="text" id="caption" value="SUNSET HEIST" maxlength="40">
+      <label class="field">
+        <span>Caption (max 40)</span>
+        <input type="text" id="caption" maxlength="40" value="SUNSET HEIST">
       </label>
-      <label class="field">Tagline
+      <div class="count" id="captionCount">12/40</div>
+      <label class="field">
+        <span>Tagline</span>
         <input type="text" id="tagline" value="VICE CITY • 2026">
       </label>
-      <div class="picker" id="letterings"></div>
+      <div class="choices" data-radio="lettering"></div>
     </section>
 
     <section>
-      <h2>Panel</h2>
-      <p class="note" id="panelLabel">Panel 1 — zoom 1.00×</p>
-      <label class="field">Zoom
-        <input type="range" id="zoom" min="1" max="2.5" step="0.05" value="1">
+      <h2>Look</h2>
+      <div class="choices" data-radio="grade"></div>
+      <label class="check">
+        <input type="checkbox" id="halftone" checked>
+        Halftone dots
       </label>
-      <p class="note">Click a panel to select it, then drag it to pan its photo.</p>
+      <label class="check">
+        <input type="checkbox" id="grain" checked>
+        Film grain
+      </label>
     </section>
 
     <section>
-      <h2>Finish</h2>
-      <label class="check"><input type="checkbox" id="halftone" checked> Halftone dots</label>
-      <label class="check"><input type="checkbox" id="grain" checked> Film grain</label>
-      <div class="picker" id="sizes">
-        <button type="button" data-size="square" class="on">Square 1080²</button>
-        <button type="button" data-size="portrait">Portrait 1080×1350</button>
-        <button type="button" data-size="wide">Wide 1920×1080</button>
-      </div>
-      <div class="export-row">
-        <button type="button" data-export="1080x1080">PNG 1080×1080</button>
-        <button type="button" data-export="1080x1350">PNG 1080×1350</button>
-        <button type="button" data-export="1920x1080">PNG 1920×1080</button>
-      </div>
+      <h2>Export</h2>
+      <div id="exports" class="exports"></div>
+      <p class="hint">PNG, straight from the canvas — no upload, no server.</p>
     </section>
   </aside>
 
-  <section class="preview">
-    <canvas id="stage" width="1080" height="1080"></canvas>
-    <p id="hint">Live preview — drag a panel to pan its photo.</p>
-  </section>
-</main>
+  <main class="preview-wrap">
+    <div class="preview">
+      <canvas id="stage" width="960" height="960"></canvas>
+    </div>
+    <p class="hint center">Live preview — drag a panel to pan its photo.</p>
+  </main>
+</div>
 
-<script type="module" src="./src/main.js"></script>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>
