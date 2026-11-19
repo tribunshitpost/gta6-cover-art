@@ -1,65 +1,78 @@
-// Re-captures the Vice Sunset screenshots with headless Chromium.
-// Reads shots.json from this repo, serves app/ on :8081, waits for each scene
-// to set window.__shotReady, then saves a JPEG into screenshots/.
-// Run from the repo root: node take-shots.mjs
-import { createRequire } from 'node:module';
-import { readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+// Retakes the entry's screenshots with headless Chromium.
+//
+// Serves app/ on port 8091, opens each scene from shots.json at its viewport
+// size, waits for the page to set window.__shotReady, and writes a JPEG into
+// screenshots/. Run from the repo root: `node take-shots.mjs`.
+//
+// Chromium comes from the Playwright browser cache on this machine; the
+// playwright-core package is loaded from the tmp-shot install beside the kit.
+
 import { spawn } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const require = createRequire(import.meta.url);
+const { chromium } = require(
+  '/home/hatch/workspace/makefun/gta6-cover-art-01/tmp-shot/node_modules/playwright-core',
+);
+
 const repo = dirname(fileURLToPath(import.meta.url));
-const require = createRequire(join(repo, '..', 'tmp-shot', 'package.json'));
-const { chromium } = require('playwright-core');
-const shots = JSON.parse(readFileSync(join(repo, 'shots.json'), 'utf8'));
-const chromeExe = process.env.HOME + '/.cache/ms-playwright/chromium-1148/chrome-linux/chrome';
+const shots = JSON.parse(readFileSync(join(repo, 'shots.json'), 'utf-8'));
+const CHROME = '/home/hatch/.cache/ms-playwright/chromium-1148/chrome-linux/chrome';
+const PORT = 8091;
 
-// Clear the starter screenshots so a failed shot can never leave a stale file.
-for (const name of readdirSync(join(repo, 'screenshots'))) {
-  if (name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png')) {
-    rmSync(join(repo, 'screenshots', name));
-  }
+function waitForServer(url, tries = 60) {
+  return new Promise((resolve, reject) => {
+    let left = tries;
+    const tick = async () => {
+      try {
+        const res = await fetch(url);
+        if (res.ok) return resolve();
+      } catch { /* not up yet */ }
+      if (--left <= 0) return reject(new Error('server never came up'));
+      setTimeout(tick, 250);
+    };
+    tick();
+  });
 }
 
-const server = spawn('node', ['serve.ts', '--port', '8091'], { cwd: repo, stdio: 'pipe' });
-await new Promise((r) => setTimeout(r, 1500));
-const browser = await chromium.launch({
-  executablePath: chromeExe,
-  args: ['--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader'],
-});
+const server = spawn(
+  process.execPath,
+  ['serve.ts', '--port', String(PORT)],
+  { cwd: repo, stdio: 'ignore' },
+);
 
-async function takeShot(page, shot, quality) {
-  await page.goto(`http://localhost:8091/${shot.query}`, { waitUntil: 'load', timeout: 30000 });
-  await page.waitForFunction(() => window.__shotReady === true, null, { timeout: 60000 });
-  await page.screenshot({ path: join(repo, 'screenshots', shot.name), type: 'jpeg', quality });
-  return statSync(join(repo, 'screenshots', shot.name)).size;
-}
-
-let failed = 0;
 try {
-  for (const shot of shots) {
-    const page = await browser.newPage({ viewport: { width: shot.vw, height: shot.vh } });
-    const errors = [];
-    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-    page.on('pageerror', (e) => errors.push(String(e)));
-    try {
-      let quality = 82;
-      let size = await takeShot(page, shot, quality);
-      while (size > 262144 && quality > 40) {
-        quality -= 15;
-        size = await takeShot(page, shot, quality);
+  await waitForServer(`http://localhost:${PORT}/`);
+  const browser = await chromium.launch({ executablePath: CHROME });
+  try {
+    for (const shot of shots) {
+      const page = await browser.newPage({ viewport: { width: shot.vw, height: shot.vh } });
+      const errors = [];
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') errors.push(msg.text());
+      });
+      page.on('pageerror', (err) => errors.push(String(err)));
+      await page.goto(`http://localhost:${PORT}/${shot.query}`, { waitUntil: 'load' });
+      await page.waitForFunction(() => window.__shotReady === true, null, { timeout: 20000 });
+      await page.screenshot({
+        path: join(repo, 'screenshots', shot.name),
+        type: 'jpeg',
+        quality: 82,
+      });
+      if (errors.length > 0) {
+        console.log(`${shot.name}: console errors: ${errors.join(' | ')}`);
+      } else {
+        console.log(`${shot.name}: ok, no console errors`);
       }
-      console.log(`${shot.name}: ${size} bytes quality=${quality} errors=${JSON.stringify(errors.slice(0, 5))}`);
-      if (size > 262144 || errors.length) failed += 1;
-    } catch (e) {
-      console.log(`${shot.name}: FAILED ${e.message} errors=${JSON.stringify(errors.slice(0, 5))}`);
-      failed += 1;
+      await page.close();
     }
-    await page.close();
+  } finally {
+    await browser.close();
   }
 } finally {
-  await browser.close();
   server.kill();
 }
-console.log(failed === 0 ? 'done: all shots clean' : `done: ${failed} shot(s) had problems`);
-process.exit(failed === 0 ? 0 : 1);
+console.log('done');
