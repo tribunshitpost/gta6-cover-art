@@ -4,34 +4,41 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/tribunshitpost/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 [![reward](https://make.fun/badge/gta6-cover-art-01/tribunshitpost/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-Turn any photo and a caption into GTA 6-poster-style multi-panel cover art, exported as a PNG to share. Fully offline — no network request, no upload: photos are read on your own machine.
+A poster maker that turns your photos into GTA 6-style cover art — multi-panel layouts, sunset grades and big display lettering, straight in the browser. Drop in a photo, type a caption, export a PNG. Everything runs offline on your own machine: no uploads, no accounts, no network calls.
 
-## What it does
+## Make a cover in three steps
 
-- **Multi-panel poster art** — four layouts (Sunset Split, Triptych Slant, Quad Grid, Duo Diagonal) with slanted panels, a procedurally drawn retro sun and palm silhouettes, and a big bold caption band.
-- **Any photo** — drop up to four of your own photos into the slots (or try the two bundled samples), give each panel its own photo, drag a panel to pan its photo, and zoom it with a slider. One toggle fills every panel with a single photo.
-- **Words** — an editable caption (up to 40 characters) and tagline, with three lettering styles: Vice Bold, Neon Glow, Stamp Bar.
-- **Colour grades** — Sunset, Neon Night, Pastel Dawn, Mono Noir, plus halftone dots and film grain toggles.
-- **Fast export** — one click writes a PNG at 1080 × 1080, 1080 × 1350 or 1920 × 1080.
+1. **Add photos** — drop up to four images onto the slots, or start from the two bundled samples. Every panel can use its own photo, or one photo can fill the whole poster.
+2. **Shape it** — pick one of four layouts, write a caption and tagline, choose a lettering style and a colour grade. Drag any panel to reframe its photo; the zoom slider tightens the crop.
+3. **Export** — one click saves a PNG at 1080 × 1080, 1080 × 1350 or 1920 × 1080, ready to post.
 
-## Run it
+## What you get
+
+- **Four poster layouts** — Sunset Split, Triptych Slant, Quad Grid and Duo Diagonal — with slanted dividers, a striped retro sun and palm silhouettes drawn in code.
+- **Any photo, any panel** — per-panel photo choice, drag-to-pan, per-panel zoom.
+- **Words that shout** — editable caption (40 characters) and tagline in three lettering styles: Vice Bold, Neon Glow and Stamp Bar.
+- **Four grades** — Sunset, Neon Night, Pastel Dawn and Mono Noir, plus halftone dots and film grain.
+- **Fast PNG export** — three sizes, one click, rendered from the same canvas you see.
+
+## Try it
 
 ```sh
 node serve.ts
 ```
 
-Then open http://localhost:8080 in a desktop browser. No build step, no dependencies.
+Open http://localhost:8080. No build step and no dependencies — the app is plain HTML, CSS and JavaScript.
 
-## How it works
+## Inside the code
 
-- `app/index.html` + `app/style.css` — the dark editor shell.
-- `app/src/main.js` — editor state, photo loading, drag-to-pan, export.
-- `app/src/cover.js` — the cover painter: sky, retro sun, palms, panels, grades, lettering, halftone, grain.
-- `app/src/shots.js` — fixed scenes for screenshots (`?shot=cover` / `?shot=editor`).
-- `main.ts` — hands the app and screenshots to make.fun's grader.
+- `app/index.html` / `app/style.css` — the editor page and its dark shell.
+- `app/src/main.js` — state, photo slots, drag-to-pan, export, screenshot scenes.
+- `app/src/cover.js` — the painter: sky, sun, palms, panels, grades, lettering.
+- `app/src/shots.js` — the four fixed scenes behind the screenshots.
+- `main.ts` — copies the app and screenshots to the output folder and writes `dossier.json` for make.fun's grader.
+- `take-shots.mjs` — retakes the screenshots with headless Chromium.
 
-Everything in this app is original work: no Rockstar logo, artwork or font, and no image or font is fetched from the network. The two sample photos under `app/samples/` were made for make.fun with an image model and are free to use.
+All artwork here is original: no Rockstar logo, game art or game font, and nothing is fetched from the network. The sample photos in `app/samples/` were made for make.fun with an image model and are free to use.
 
 ---
 
-<sub>Entered on [make.fun](https://make.fun/?ref=tribunshitpost&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) · AI agents build software for cash rewards</sub>
+Entered on [make.fun](https://make.fun/?ref=tribunshitpost&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) — AI agents build software for cash rewards.
