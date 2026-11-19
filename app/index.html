@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Sunset Cover Studio</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body data-grade="sunset">
+<div class="studio">
+  <aside class="panel">
+    <header>
+      <h1>VICE SUNSET</h1>
+      <p class="tag">Cover Studio — photo + caption, poster-ready.</p>
+      <ol class="steps">
+        <li><strong>1</strong> Drop a photo</li>
+        <li><strong>2</strong> Pick a layout &amp; words</li>
+        <li><strong>3</strong> Export the PNG</li>
+      </ol>
+    </header>
+
+    <section>
+      <h2>Photos — up to four</h2>
+      <p class="hint">Drop an image on a slot, or use a sample. Drag the preview to pan a panel.</p>
+      <div class="slot" data-slot="0">
+        <span class="slot-name">Photo A</span>
+        <input type="file" accept="image/*" aria-label="Photo A file">
+        <span class="samples">
+          <button type="button" data-sample="pier">Pier sample</button>
+          <button type="button" data-sample="boulevard">Boulevard sample</button>
+        </span>
+      </div>
+      <div class="slot" data-slot="1">
+        <span class="slot-name">Photo B</span>
+        <input type="file" accept="image/*" aria-label="Photo B file">
+        <span class="samples">
+          <button type="button" data-sample="pier">Pier sample</button>
+          <button type="button" data-sample="boulevard">Boulevard sample</button>
+        </span>
+      </div>
+      <div class="slot" data-slot="2">
+        <span class="slot-name">Photo C</span>
+        <input type="file" accept="image/*" aria-label="Photo C file">
+        <span class="samples">
+          <button type="button" data-sample="pier">Pier sample</button>
+          <button type="button" data-sample="boulevard">Boulevard sample</button>
+        </span>
+      </div>
+      <div class="slot" data-slot="3">
+        <span class="slot-name">Photo D</span>
+        <input type="file" accept="image/*" aria-label="Photo D file">
+        <span class="samples">
+          <button type="button" data-sample="pier">Pier sample</button>
+          <button type="button" data-sample="boulevard">Boulevard sample</button>
+        </span>
+      </div>
+      <label class="check"><input type="checkbox" id="fill-all"> One photo fills every panel</label>
+    </section>
+
+    <section>
+      <h2>Layout</h2>
+      <div class="choices">
+        <button type="button" data-layout="split">Sunset Split</button>
+        <button type="button" data-layout="triptych" class="active">Triptych Slant</button>
+        <button type="button" data-layout="quad">Quad Grid</button>
+        <button type="button" data-layout="duo">Duo Diagonal</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Words</h2>
+      <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
+      <label>Tagline <input id="tagline" type="text" maxlength="48" value="Vice City • 2026"></label>
+      <h2>Lettering</h2>
+      <div class="choices">
+        <button type="button" data-lettering="vice" class="active">Vice Bold</button>
+        <button type="button" data-lettering="neon">Neon Glow</button>
+        <button type="button" data-lettering="stamp">Stamp Bar</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Colour grade</h2>
+      <div class="choices">
+        <button type="button" data-grade="sunset" class="active">Sunset</button>
+        <button type="button" data-grade="neon">Neon Night</button>
+        <button type="button" data-grade="pastel">Pastel Dawn</button>
+        <button type="button" data-grade="mono">Mono Noir</button>
+      </div>
+      <label class="check"><input type="checkbox" id="toggle-halftone" checked> Halftone dots</label>
+      <label class="check"><input type="checkbox" id="toggle-grain" checked> Film grain</label>
+      <label class="check"><input type="checkbox" id="toggle-sun" checked> Retro sun &amp; palms</label>
+    </section>
+
+    <section>
+      <h2>Crop the panel</h2>
+      <div class="row">
+        <label>Panel <select id="panel-select"></select></label>
+        <label>Photo <select id="panel-photo">
+          <option value="0">Photo A</option>
+          <option value="1">Photo B</option>
+          <option value="2">Photo C</option>
+          <option value="3">Photo D</option>
+        </select></label>
+      </div>
+      <label>Zoom <span id="zoom-value">1.00×</span>
+        <input id="zoom" type="range" min="1" max="3" step="0.05" value="1">
+      </label>
+      <button type="button" id="reset-crop" class="ghost">Reset crop</button>
+    </section>
+
+    <section class="export">
+      <h2>Export</h2>
+      <label>Post size
+        <select id="export-size">
+          <option value="1080x1080">1080 × 1080 — square post</option>
+          <option value="1080x1350">1080 × 1350 — portrait post</option>
+          <option value="1920x1080">1920 × 1080 — wide post</option>
+        </select>
+      </label>
+      <button id="export" type="button" class="primary">Export PNG</button>
+      <p id="status" role="status">Loading samples…</p>
+    </section>
+  </aside>
+
+  <main class="stage">
+    <canvas id="cover" width="1080" height="1080" aria-label="Live cover preview"></canvas>
+    <p class="stage-hint">Live preview — drag a panel to pan its photo.</p>
+  </main>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
