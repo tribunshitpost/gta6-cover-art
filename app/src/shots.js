@@ -1,77 +1,101 @@
-// Vice Sunset Cover Studio — fixed scenes for screenshots.
+// shots.js — fixed scenes for screenshots and demos.
 //
-// ?shot=cover paints one cover full-page (the app's own drawing at the size
-// the query names); ?shot=editor opens the editor with a scene's state and
-// photos loaded. Both set window.__shotReady once the paint is done, which
-// the screenshot script waits for before it shoots.
+// A scene is a full editor state snapshot: layout, grade, lettering, words and
+// per-panel photo choices with pan/zoom. `?shot=cover` or `?shot=editor` picks
+// one by name; the editor (main.js) applies it on load and then flips
+// window.__shotReady once the scene is painted. This module imports nothing
+// from the editor, so the two can never deadlock on each other.
 
-import { defaultState, paintCover } from './cover.js';
+/** The four fixed scenes, in the order the screenshots are taken. */
+export const SCENES = [
+  {
+    name: 'cover',
+    shot: '1-cover',
+    title: 'Sunset Heist — triptych cover',
+    state: {
+      layout: 'triptych', grade: 'sunset', lettering: 'vice',
+      caption: 'SUNSET HEIST', tagline: 'VICE CITY • 2026',
+      halftone: true, grain: true, fillOne: false,
+      photos: ['pier', 'boulevard', 'pier', null],
+      panels: [
+        { photo: 0, px: 0.5, py: 0.5, zoom: 1 },
+        { photo: 1, px: 0.5, py: 0.42, zoom: 1.05 },
+        { photo: 2, px: 0.5, py: 0.5, zoom: 1 },
+        { photo: 0, px: 0.5, py: 0.5, zoom: 1 },
+      ],
+    },
+  },
+  {
+    name: 'editor',
+    shot: '2-editor',
+    title: 'Editor with a photo loaded',
+    state: {
+      layout: 'quad', grade: 'sunset', lettering: 'vice',
+      caption: 'BOULEVARD QUEEN', tagline: 'VICE CITY • 2026',
+      halftone: true, grain: true, fillOne: false,
+      photos: ['boulevard', 'pier', null, null],
+      panels: [
+        { photo: 0, px: 0.5, py: 0.34, zoom: 1 },
+        { photo: 1, px: 0.5, py: 0.5, zoom: 1 },
+        { photo: 0, px: 0.5, py: 0.34, zoom: 1 },
+        { photo: 1, px: 0.5, py: 0.5, zoom: 1 },
+      ],
+    },
+  },
+  {
+    name: 'cover',
+    shot: '3-cover',
+    title: 'Boulevard Queen — quad cover, neon glow',
+    state: {
+      layout: 'quad', grade: 'neon', lettering: 'neon',
+      caption: 'BOULEVARD QUEEN', tagline: 'VICE CITY • 2026',
+      halftone: true, grain: true, fillOne: false,
+      photos: ['boulevard', 'pier', 'boulevard', 'pier'],
+      panels: [
+        { photo: 0, px: 0.5, py: 0.34, zoom: 1 },
+        { photo: 1, px: 0.5, py: 0.5, zoom: 1 },
+        { photo: 2, px: 0.5, py: 0.34, zoom: 1 },
+        { photo: 3, px: 0.5, py: 0.5, zoom: 1 },
+      ],
+    },
+  },
+  {
+    name: 'cover',
+    shot: '4-cover',
+    title: 'Neon Palms — split cover, portrait',
+    state: {
+      layout: 'split', grade: 'neon', lettering: 'neon',
+      caption: 'NEON PALMS', tagline: 'VICE CITY • 2026',
+      halftone: true, grain: true, fillOne: false,
+      photos: ['pier', 'boulevard', 'pier', null],
+      panels: [
+        { photo: 0, px: 0.5, py: 0.5, zoom: 1 },
+        { photo: 1, px: 0.5, py: 0.34, zoom: 1 },
+        { photo: 2, px: 0.5, py: 0.5, zoom: 1 },
+        { photo: 0, px: 0.5, py: 0.5, zoom: 1 },
+      ],
+    },
+  },
+];
 
-// NOTE: this module deliberately does NOT import main.js — main.js loads it
-// with a top-level await, so importing main.js back would deadlock the
-// module graph. The editor entry point is passed in by main.js instead.
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`could not load ${src}`));
-    img.src = src;
-  });
+/** The scene for a `?shot=` value ('cover' or 'editor'), or null. */
+export function sceneFor(name) {
+  if (name === 'editor') return SCENES[1];
+  if (name === 'cover') {
+    const idx = Number(new URLSearchParams(location.search).get('n') || '0');
+    const covers = SCENES.filter((s) => s.name === 'cover');
+    return covers[((idx % covers.length) + covers.length) % covers.length];
+  }
+  return null;
 }
 
-export async function runShot(params, initEditor) {
-  const state = defaultState();
-  state.layout = params.get('layout') || state.layout;
-  state.grade = params.get('grade') || state.grade;
-  state.lettering = params.get('lettering') || state.lettering;
-  state.caption = params.get('caption') || state.caption;
-  state.tagline = params.get('tagline') || state.tagline;
-  const py0 = params.get('py0');
-  if (py0 !== null) {
-    // A vertical-pan override for the first photo's panels (the left column
-    // of a quad, the outer panels of a triptych): it keeps a face that sits
-    // high in its photo inside every panel that shows it.
-    state.panels[0].py = Number(py0);
-    if (state.panels[2]) state.panels[2].py = Number(py0);
-  }
-  const py1 = params.get('py1');
-  if (py1 !== null) {
-    state.panels[1].py = Number(py1);
-    if (state.panels[3]) state.panels[3].py = Number(py1);
-  }
-  const py2 = params.get('py2');
-  if (py2 !== null) state.panels[2].py = Number(py2);
-
-  const photo = params.get('photo') || 'boulevard';
-  const photo2 = params.get('photo2') || 'pier';
-  const shot = params.get('shot') || 'cover';
-
-  if (shot === 'cover') {
-    const w = Number(params.get('w') || 1280);
-    const h = Number(params.get('h') || 720);
-    const imgs = [
-      await loadImage(`samples/${photo}.jpg`),
-      await loadImage(`samples/${photo2}.jpg`),
-    ];
-    document.body.classList.add('cover-shot');
-    const stage = document.querySelector('#stage');
-    stage.width = w;
-    stage.height = h;
-    paintCover(stage, state, imgs);
-    window.__shotReady = true;
-    return;
-  }
-
-  // Editor scene: start the editor with this scene's words, layout and
-  // photos, then signal ready once its first paint has the photos in it.
-  initEditor({ state, photos: [photo, photo2] });
-  const waitReady = () => {
-    if (window.__editorReady) {
-      window.__shotReady = true;
-    } else {
-      setTimeout(waitReady, 50);
-    }
+/** Read the shot parameters out of the current URL. */
+export function shotParams() {
+  const q = new URLSearchParams(location.search);
+  return {
+    shot: q.get('shot'),
+    n: Number(q.get('n') || '0'),
+    w: Number(q.get('w') || '0'),
+    h: Number(q.get('h') || '0'),
   };
-  waitReady();
 }
